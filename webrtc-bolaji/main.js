@@ -1,3 +1,4 @@
+// stylesheet
 import "./style.css";
 
 // importing firebase into our main js file
