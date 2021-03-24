@@ -49,3 +49,8 @@ let remoteStream = null;
 
 // The start webcam button
 const webcamButton = document.getElementById("webcamButton");
+
+// localStream video
+const webcamVideo = document.getElementById("webcamVideo");
+
+const callButton = document.getElementById("callButton");
