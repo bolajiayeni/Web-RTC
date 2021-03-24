@@ -44,3 +44,8 @@ let localStream = null;
 
 // Receiving webcam
 let remoteStream = null;
+
+// DOM constants
+
+// The start webcam button
+const webcamButton = document.getElementById("webcamButton");
