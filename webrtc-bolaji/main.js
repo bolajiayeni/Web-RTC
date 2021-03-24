@@ -47,10 +47,25 @@ let remoteStream = null;
 
 // DOM constants
 
-// The start webcam button
+// The start webcam button, yeah you have to start the webcam first*
 const webcamButton = document.getElementById("webcamButton");
 
 // localStream video
 const webcamVideo = document.getElementById("webcamVideo");
 
+// to start your calls with
 const callButton = document.getElementById("callButton");
+
+// input field to enter your call ID: generated string that adds you to a call. gonna probably be useful
+const callInput = document.getElementById("callInput");
+
+// button to basically answer a call which you entered a call ID for
+
+// TODO: use css to optimize how the call and reject button will look. please improve ui/ux
+const answerButton = document.getElementById("answerButton");
+
+//remoteStream Video
+const remoteVideo = document.getElementById("remoteVideo");
+
+// hangup button, for yunno hanging up lol
+const hangupButton = document.getElementById("hangupButton");
