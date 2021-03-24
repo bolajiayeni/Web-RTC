@@ -69,3 +69,58 @@ const remoteVideo = document.getElementById("remoteVideo");
 
 // hangup button, for yunno hanging up lol
 const hangupButton = document.getElementById("hangupButton");
+
+// setting up media sources
+
+webcamButton.onclick = async () => {
+  localStream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: true,
+  });
+
+  remoteStream = new MediaStream();
+
+  // moving video and audio from stream to p2p
+  localStream.getTracks().forEach((track) => {
+    pc.addTrack(track, localStream);
+  });
+
+  //taking  tracks from remote stream
+  pc.ontrack = (event) => {
+    event.streams[0].getTracks().forEach((track) => {
+      remoteStream.addTrack(track);
+    });
+  };
+
+  webcamVideo.srcObject = localStream;
+  remoteVideo.srcObject = remoteStream;
+};
+
+//Creating an offer i.e a video call stream
+callButton.onclick = async () => {
+  //firestore collection
+  const callDoc = firestore.collection("calls").doc();
+  const offerCandidates = callDoc.collection("offerCandidates");
+  const answerCandidates = callDoc.collection("answerCandidates");
+
+  callInput.value = callDoc.id;
+
+  // Get ICE candidates for caller and sace to db
+
+  pc.onicecandidate = (event) => {
+    event.candidate && offerCandidates.add(event.candidate.toJSON());
+  };
+
+  // create offer
+
+  const offerDescription = await pc.createOffer();
+
+  await pc.setLocalDescription(offerDescription);
+
+  const offer = {
+    sdp: offerDescription.sdp,
+    type: offerDescription.type,
+  };
+
+  await callDoc.set({ offer });
+};
