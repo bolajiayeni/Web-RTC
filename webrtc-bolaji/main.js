@@ -94,6 +94,10 @@ webcamButton.onclick = async () => {
 
   webcamVideo.srcObject = localStream;
   remoteVideo.srcObject = remoteStream;
+
+  callButton.disabled = false;
+  answerButton.disabled = false;
+  webcamButton.disabled = true;
 };
 
 //Creating an offer i.e a video call stream
@@ -123,4 +127,62 @@ callButton.onclick = async () => {
   };
 
   await callDoc.set({ offer });
+
+  // lsiten for remote stream answer
+  callDoc.onSnapshot((snapshot) => {
+    const data = snapshot.data();
+    if (!pc.currentRemoteDescription && data?.answer) {
+      const answerDescription = new RTCSessionDescription(data.answer);
+
+      pc.setRemoteDescription(answerDescription);
+    }
+  });
+
+  // Adding candidate to peer connection when answered
+  answerCandidates.onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const candidate = new RTCIceCandidate(change.doc.data());
+        pc.addIceCandidate(candidate);
+      }
+    });
+  });
+
+  hangupButton.disabled = false;
+};
+
+answerButton.onclick = async () => {
+  const callId = callInput.value;
+  const callDoc = firestore.collection("calls").doc(callId);
+  const answerCandidates = callDoc.collection("answerCandidates");
+  const offerCandidates = callDoc.collection("offerCandidates");
+
+  pc.onicecandidate = (event) => {
+    event.candidate && answerCandidates.add(event.candidate.toJSON());
+  };
+
+  const callData = (await callDoc.get()).data();
+
+  const offerDescription = callData.offer;
+  await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
+
+  const answerDescription = await pc.createAnswer();
+  await pc.setLocalDescription(answerDescription);
+
+  const answer = {
+    sdp: answerDescription.sdp,
+    type: answerDescription.type,
+  };
+
+  await callDoc.update({ answer });
+
+  offerCandidates.onSnapshot((snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      console.log(change);
+      if (change.type === "added") {
+        let data = change.doc.data();
+        pc.addIceCandidate(new RTCIceCandidate(data));
+      }
+    });
+  });
 };
